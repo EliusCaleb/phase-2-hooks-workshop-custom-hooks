@@ -4,28 +4,54 @@ import { useEffect, useState } from "react";
   the two parameters for this function are: 
   - key: the key on localStorage where we are saving this data
   - initialValue: the initial value of state
+  
 */
-export function useLocalStorage(key, initialValue) {
+
+function getLocalStorageData(key){
+  let stringifiedValue= localStorage.getItem(key)
+  try{
+    const stringifiedValue =  JSON.parse(stringifiedValue)
+  }catch{}
+  
+  return(stringifiedValue)
+}
+
+function setLocalStorageData(key,value){
+  const stringifiedValue= JSON.stringify(value)
+  localStorage.setItem(key,stringifiedValue)
+
+}
+export function useLocalStorage(key, initialValue=null) {
   /* 
     ✅ in this hook, use the useState hook. For the initial value for state:
     use the value saved in localStorage OR the initialValue from the function parameters 
   */
-     //const [state,setState]=useState(initialValue)
+     const [state,setState]=useState(getLocalStorageData(key)||initialValue)
   /* 
    ✅ write a useEffect hook 
    in the useEffect, when state is updated, save the state to localStorage
    don't forget the dependencies array!
   */
-  useEffect(() => {
-    const storedValue = getLocalStorageValue(key);
-  const [state, setState] = useState(storedValue || initialValue);
+  
 
   useEffect(() => {
-    setLocalStorageValue(key, state);
+    setLocalStorageData(key,state)
+    //localStorage.setItem(key,state)
   }, [key, state]);
 
-  return [state, setState];
-  },[]);
+  //return [state, setStat
+   useEffect(()=>{
+
+    function handleStorageUpdate(){
+       const value = getLocalStorageData(key)
+       setState(value)
+    }
+     window.addEventListener("storage", handleStorageUpdate)
+     return  function cleanup (){
+      window.removeEventListener("storage", handleStorageUpdate)
+     }
+   },[key])
+
 
   /* 
    ✅ return the same interface as useState:
@@ -39,7 +65,7 @@ export function useLocalStorage(key, initialValue) {
 function Form() {
   // ✅ after implementing the useLocalStorage hook, replace useState with useLocalStorage
   // don't forget to pass in both arguments (a key and an initialValue)
-  const [name, setName] = useState("");
+  const [name, setName] = useLocalStorage("name","");
   console.log(name);
 
   return (
